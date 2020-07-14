@@ -48,6 +48,9 @@ type Marshaler struct {
 	// AnyResolver is used to resolve the google.protobuf.Any well-known type.
 	// If unset, the global registry is used by default.
 	AnyResolver AnyResolver
+
+	// Option to remove quote when marshaler int64/uint64
+	UnquoteInt64 bool
 }
 
 // JSONPBMarshaler is implemented by protobuf messages that customize the
@@ -540,7 +543,11 @@ func (w *jsonWriter) marshalSingularValue(fd protoreflect.FieldDescriptor, v pro
 				return nil
 			}
 		case int64, uint64:
-			w.write(fmt.Sprintf(`"%d"`, v.Interface()))
+			format := `"%d"`
+			if w.UnquoteInt64 {
+				format = `%d`
+			}
+			w.write(fmt.Sprintf(format, v.Interface()))
 			return nil
 		}
 
